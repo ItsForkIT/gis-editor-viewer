@@ -57,10 +57,25 @@ map.on(L.Draw.Event.CREATED, function (e) {
 
    var geojson = e.layer.toGeoJSON();
    // Do whatever else you need to. (save to db; add to map etc)
-   var description = prompt("Please enter some descriotion: (eg: techno, stationary shop)");
+   var description_input = prompt("Please enter some descriotion: (eg: techno, stationary shop)");
 
-   console.log("saving.." + description + geojson);
+   console.log("saving.." + description_input + geojson);
    console.log(geojson);
+
+    var date = Date().toString();
+    db.collection("gisObjects").add({
+        GeoJSON: JSON.stringify(geojson),
+        timestamp: date,
+        type: type,
+        description: description_input
+    })
+    .then(function(docRef) {
+        console.log("Document written with ID: ", docRef.id);
+        alert("data saved successfully..");
+    })
+    .catch(function(error) {
+        console.error("Error adding document: ", error);
+    });
 
    map.addLayer(layer);
 });
