@@ -47,6 +47,18 @@ var ourCustomControl = L.Control.extend({
 map.addControl(new ourCustomControl());
 
 
+// Plot Existing Data
+db.collection("gisObjects").get().then(function(querySnapshot) {
+    querySnapshot.forEach(function(doc) {
+        // doc.data() is never undefined for query doc snapshots
+        // console.log(doc.id, " => ", doc.data());
+        // console.log(doc.data().GeoJSON);
+        L.geoJSON(JSON.parse(doc.data().GeoJSON)).addTo(map);
+    });
+});
+
+
+
 // Draw Event
 map.on(L.Draw.Event.CREATED, function (e) {
    var type = e.layerType,
