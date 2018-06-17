@@ -1,15 +1,20 @@
 var map = L.map('map', {drawControl: true}).fitWorld();
 
 // create the tile layer with correct attribution
-var osmUrl='https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png';
-var osmAttrib='Map data © <a href="https://openstreetmap.org">OpenStreetMap</a> contributors';
-var osm = new L.TileLayer(osmUrl, {minZoom: 2, maxZoom: 18, attribution: osmAttrib});       
+// var osmUrl='https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png';
+// var osmAttrib='Map data © <a href="https://openstreetmap.org">OpenStreetMap</a> contributors';
+// var osm = new L.TileLayer(osmUrl, {minZoom: 2, maxZoom: 18, attribution: osmAttrib});       
 
-// start the map in NIT Dgp
+// // start the map in NIT Dgp
+// map.setView(new L.LatLng(23.5499538, 87.2856928),15);
+// map.addLayer(osm);
+
+var gl = L.mapboxGL({
+        attribution: '<a href="https://www.maptiler.com/license/maps/" target="_blank">© MapTiler</a> <a href="https://www.openstreetmap.org/copyright" target="_blank">© OpenStreetMap contributors</a>',
+        accessToken: 'not-needed',
+        style: 'https://maps.tilehosting.com/c/0aab4c7d-013b-4f10-ab29-8e438f06ec1b/styles/basic/style.json?key=urAR9j6VqdctDxrgbJcr'
+      }).addTo(map);
 map.setView(new L.LatLng(23.5499538, 87.2856928),15);
-map.addLayer(osm);
-
-
 
 // Current Location
 function onLocationFound(e) {
