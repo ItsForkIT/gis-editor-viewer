@@ -16,7 +16,7 @@ function onLocationFound(e) {
     var radius = e.accuracy / 2;
 
     L.marker(e.latlng).addTo(map)
-        .bindPopup("You are within " + radius + " meters from this point").openPopup();
+    .bindPopup("You are within " + radius + " meters from this point").openPopup();
 
     L.circle(e.latlng, radius).addTo(map);
 }
@@ -25,11 +25,11 @@ map.on('locationfound', onLocationFound);
 
 
 var ourCustomControl = L.Control.extend({ 
-  options: {
-    position: 'topright' 
-    //control position - allowed: 'topleft', 'topright', 'bottomleft', 'bottomright'
-  },
-  onAdd: function (map) {
+    options: {
+        position: 'topright' 
+//control position - allowed: 'topleft', 'topright', 'bottomleft', 'bottomright'
+},
+onAdd: function (map) {
     var container = L.DomUtil.create('div', 'leaflet-bar leaflet-control leaflet-control-custom');
     container.style.backgroundColor = '#8a8a8a';
     container.style.backgroundImage = "url('images/marker-icon.png')";
@@ -37,12 +37,12 @@ var ourCustomControl = L.Control.extend({
     container.style.width = '30px';
     container.style.height = '30px';
     container.onclick = function(){
-    console.log('goTolocation');
-    map.locate({setView: true, maxZoom: 18});
+        console.log('goTolocation');
+        map.locate({setView: true, maxZoom: 18});
     }
     return container;
-  },
- 
+},
+
 });
 map.addControl(new ourCustomControl());
 
@@ -53,28 +53,41 @@ db.collection("gisObjects").get().then(function(querySnapshot) {
         // doc.data() is never undefined for query doc snapshots
         // console.log(doc.id, " => ", doc.data());
         // console.log(doc.data().GeoJSON);
-        L.geoJSON(JSON.parse(doc.data().GeoJSON)).addTo(map);
-    });
+        // L.geoJSON(JSON.parse(doc.data().GeoJSON)).addTo(map);
+        var GeoJSON = JSON.parse(doc.data().GeoJSON);
+        drawGeoJSON(GeoJSON);
 });
+});
+
+// GeoJSON Drawer
+function drawGeoJSON(GeoJSON){
+    L.geoJSON(GeoJSON, {}).bindPopup(
+            function (layer) {
+            return GeoJSON.properties.description;
+        }).addTo(map);
+}
 
 
 
 // Draw Event
+var geojsondrawn;
 map.on(L.Draw.Event.CREATED, function (e) {
-   var type = e.layerType,
-       layer = e.layer;
-   if (type === 'marker') {
-       // Do marker specific actions
-   }
+    var type = e.layerType,
+    layer = e.layer;
+//     if (type === 'marker') {
+// // Do marker specific actions
+// }
 
-   var geojson = e.layer.toGeoJSON();
-   // Do whatever else you need to. (save to db; add to map etc)
-   var description_input = prompt("Please enter some descriotion: (eg: techno, stationary shop)");
+    geojsondrawn = e.layer.toGeoJSON();
+    geojsondrawn.properties.type = type;
+//  Do whatever else you need to. (save to db; add to map etc)
+    openDescriptionInputModal();
 
-   console.log("saving.." + description_input + geojson);
-   console.log(geojson);
+});
 
-    var date = Date().toString();
+
+// Save GIS
+function saveGIS(geojson, date, type, description_input){
     db.collection("gisObjects").add({
         GeoJSON: JSON.stringify(geojson),
         timestamp: date,
@@ -84,11 +97,70 @@ map.on(L.Draw.Event.CREATED, function (e) {
     .then(function(docRef) {
         console.log("Document written with ID: ", docRef.id);
         alert("data saved successfully..");
+        drawGeoJSON(geojson);
+        closeModal();
     })
     .catch(function(error) {
         console.error("Error adding document: ", error);
+        closeModal();
     });
+}
 
-   map.addLayer(layer);
-});
 
+
+// Description Inpur Modal
+var modal = document.getElementById('descriptionInputModal');
+var saveButton = document.getElementById('save-button');
+var cancelButton = document.getElementById('cancel-button');
+var descriptionTextArea = document.getElementById('description-input');
+
+function openDescriptionInputModal(){
+    console.log("Here");
+    modal.style.display = "block";
+}
+
+
+// When user clicks save
+saveButton.onclick = function(){
+    console.log("SAVEEE!!");
+    description_input = descriptionTextArea.value;
+    if(description_input == ""){
+        alert("Enter valid description");
+    }else{
+        geojsondrawn.properties.description = description_input;
+        console.log("saving.." + description_input + geojsondrawn);
+        console.log(geojsondrawn);
+        var date = Date().toString();
+        saveGIS(geojsondrawn, date, geojsondrawn.properties.type, description_input);
+    }
+
+}
+
+// When user clicks cancel
+cancelButton.onclick = function(){
+    console.log("CANCEL!!");
+    closeModal();
+}
+
+
+
+// Close Modal
+function closeModal(){
+    descriptionTextArea.value = "";
+    geojsondrawn = "";
+    modal.style.display = "none";
+}
+
+// When the user clicks anywhere outside of the modal, close it
+window.onclick = function(event) {
+    if (event.target == modal) {
+        closeModal();
+    }
+}
+
+
+// When the user clicks on <span> (x), close the modal
+var span = document.getElementsByClassName("close")[0];
+span.onclick = function() {
+    closeModal();
+}
