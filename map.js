@@ -1,3 +1,4 @@
+// Setup the map
 var map = L.map('map', {drawControl: true}).fitWorld();
 
 // create the tile layer with correct attribution
@@ -15,6 +16,8 @@ var gl = L.mapboxGL({
         style: 'https://maps.tilehosting.com/c/0aab4c7d-013b-4f10-ab29-8e438f06ec1b/styles/basic/style.json?key=urAR9j6VqdctDxrgbJcr'
       }).addTo(map);
 map.setView(new L.LatLng(23.5499538, 87.2856928),15);
+
+
 
 // Current Location
 function onLocationFound(e) {
@@ -52,6 +55,7 @@ onAdd: function (map) {
 map.addControl(new ourCustomControl());
 
 
+
 // Plot Existing Data
 db.collection("gisObjects").get().then(function(querySnapshot) {
     querySnapshot.forEach(function(doc) {
@@ -66,10 +70,17 @@ db.collection("gisObjects").get().then(function(querySnapshot) {
 
 // GeoJSON Drawer
 function drawGeoJSON(GeoJSON){
-    L.geoJSON(GeoJSON, {}).bindPopup(
+    var thisLayer = L.geoJSON(GeoJSON, {});
+    thisLayer.addTo(map);
+    thisLayer.bindPopup(
             function (layer) {
             return GeoJSON.properties.description;
-        }).addTo(map);
+        })
+    thisLayer.bindTooltip(GeoJSON.properties.description, {
+        permanent: true,
+        opacity: 0.9,
+        direction: 'top'
+    }).openTooltip();
 }
 
 
